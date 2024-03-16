@@ -21,6 +21,27 @@
 
 
 module MemoryStage(
-
+    input logic MEM_CLK,
+    input logic [31:0] ADDR_2,
+    input logic [31:0] D_IN_2,
+    input logic MEM_WRITE,
+    input logic MEM_READ_2,
+    output logic [31:0] D_OUT_2,   // not buffered
+    
+    // IO
+    input logic [31:0] IOBUS_IN,
+    output logic [31:0] IOBUS_OUT,
+    output logic IOBUS_WR,
+    output logic [31:0] IOBUS_ADDR,
+    
+    // Fetch stage stuff - not buffered
+    input logic [31:0] MEM_ADDR_1,
+    input logic MEM_READ_1,
+    output logic [31:0] D_OUT_1
+    
+    /* // Error stuff
+    input logic ERR_PC_IN,
+    output logic ERR_PC_OUT 
+    */
     );
 endmodule

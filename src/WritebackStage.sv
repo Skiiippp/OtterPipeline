@@ -21,6 +21,18 @@
 
 
 module WritebackStage(
-
+    input logic WB_CLK,
+    input logic REG_WRITE,
+    input logic [31:0] PC_PLUS_FOUR,
+    input logic [31:0] CSR_REG,
+    input logic [31:0] D_OUT_2,
+    input logic [31:0] ALU_RESULT,
+    input logic [1:0] RF_WR_SEL,
+    output logic [31:0] WD
+    
+    /* // Error stuff
+    input logic ERR_PC_IN,
+    output logic ERR_PC_OUT
+    */
     );
 endmodule

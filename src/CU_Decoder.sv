@@ -24,15 +24,18 @@ module OTTER_CU_Decoder(
     input [6:0] CU_OPCODE,
     input [2:0] CU_FUNC3,
     input [6:0] CU_FUNC7,
-    input CU_BR_EQ,
-    input CU_BR_LT,
-    input CU_BR_LTU,
+    //input CU_BR_EQ,
+    //input CU_BR_LT,
+    //input CU_BR_LTU,
     input intTaken,
     output logic CU_ALU_SRCA,
     output logic [1:0] CU_ALU_SRCB,
     output logic [3:0] CU_ALU_FUN,
-    output logic [1:0] CU_RF_WR_SEL,   
-    output logic [3:0] CU_PCSOURCE
+    output logic [1:0] CU_RF_WR_SEL,
+    output logic REG_WRITE,
+    output logic MEM_WRITE,
+    output logic MEM_READ_2   
+    //output logic [3:0] CU_PCSOURCE
     //output logic [1:0] CU_MSIZE
    );
         typedef enum logic [6:0] {
@@ -77,7 +80,9 @@ module OTTER_CU_Decoder(
 //                STORE: 4'b0;
                 default: CU_ALU_FUN = 4'b0;
             endcase
-            
+
+            // Not needed here for pipeline
+            /*
             always_comb
             case(CU_FUNC3)
                         3'b000: brn_cond = CU_BR_EQ;     //BEQ 
@@ -88,6 +93,7 @@ module OTTER_CU_Decoder(
                         3'b111: brn_cond = ~CU_BR_LTU;   //BGEU
                         default: brn_cond =0;
             endcase
+            */
             
          always_comb
          begin
@@ -117,6 +123,8 @@ module OTTER_CU_Decoder(
           //else CU_ALU_SRCB=3;
          end
          
+         // Not this stage for pipeline
+         /*
          always_comb begin
                 case(CU_OPCODE)
                     JAL: CU_PCSOURCE =3'b011;
@@ -128,10 +136,16 @@ module OTTER_CU_Decoder(
                 if(intTaken)    
                     CU_PCSOURCE=3'b100;   
         end
+        */
          
         
        assign CU_ALU_SRCA = (CU_OPCODE==LUI || CU_OPCODE==AUIPC) ? 1 : 0;
                 
-        //assign CU_MSIZE = CU_FUNC3[1:0];        
+        //assign CU_MSIZE = CU_FUNC3[1:0];       
+        
+        // Reg write
+       assign REG_WRITE = (OPCODE != BRANCH && OPCODE != LOAD && OPCODE != STORE/* && ~MRET*/) ; 
+       assign MEM_WRITE = (OPCODE == STORE);
+       assign MEM_READ_2 = (OPCODE==LOAD);
 
 endmodule
