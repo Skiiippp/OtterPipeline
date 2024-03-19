@@ -62,12 +62,25 @@ module ExecuteStage(
     end
     
     //branch gen
+    //works on hope and dreams (or lack of)
     logic br_lt,br_eq,br_ltu;
+    logic brn_cond;
     always_comb begin 
         br_lt=0; br_eq=0; br_ltu=0;
         if($signed(RS_1) < $signed(RS_2)) br_lt=1;
         if(RS_1==RS_2) br_eq=1;
         if(RS_1<RS_2) br_ltu=1;
+        
+        //get true/false condition return
+        case(IR[14:12])
+                        3'b000: brn_cond = br_eq;     //BEQ 
+                        3'b001: brn_cond = ~br_eq;    //BNE
+                        3'b100: brn_cond = br_lt;     //BLT
+                        3'b101: brn_cond = ~br_lt;    //BGE
+                        3'b110: brn_cond = br_ltu;    //BLTU
+                        3'b111: brn_cond = ~br_ltu;   //BGEU
+                        default: brn_cond =0;
+        endcase
         
         case(IR[6:0])
             7'b1101111: pc_source = 3'b011; //JAL
@@ -77,24 +90,4 @@ module ExecuteStage(
         endcase
         
     end
-    
-    /* always_comb begin
-                case(CU_OPCODE)
-                    JAL: CU_PCSOURCE =3'b011;
-                    JALR: CU_PCSOURCE=3'b001;
-                    BRANCH: CU_PCSOURCE=(brn_cond)?3'b010:2'b000;
-                    SYSTEM: CU_PCSOURCE = (CU_FUNC3==Func3_PRIV)? 3'b101:3'b000;
-                    default: CU_PCSOURCE=3'b000; 
-                endcase*/
-                
-                /*              IR[6:0]
-                   JAL      = 7'b1101111,
-                   JALR     = 7'b1100111,
-                   BRANCH   = 7'b1100011,
-                   LOAD     = 7'b0000011,
-                   STORE    = 7'b0100011,
-                   OP_IMM   = 7'b0010011,
-                   OP       = 7'b0110011,
-                   SYSTEM   = 7'b1110011*/
-    
 endmodule
