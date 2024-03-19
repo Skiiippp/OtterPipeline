@@ -23,7 +23,7 @@
 module DecodeStage(
     input logic DE_CLK,
     input logic PC_COUNT,
-    input logic [31:0] IR,
+    input logic [31:0] MEM_RAW_DOUT1,
     input logic [31:0] WD,
     output logic REG_WRITE,
     output logic MEM_WRITE,
@@ -33,9 +33,11 @@ module DecodeStage(
     output logic [31:0] RS_2,
     output logic [31:0] J_TYPE,
     output logic [31:0] B_TYPE,
+    output logic [31:0] I_TYPE,
     output logic [31:0] ALU_IN_1,
     output logic [31:0] ALU_IN_2,
-    output logic [1:0] RF_WR_SEL
+    output logic [1:0] RF_WR_SEL,
+    output logic [31:0] IR
     );
     
     logic reg_write, mem_write, mem_read_2, int_taken = 1'b0, alu_src_a; 
@@ -54,26 +56,28 @@ module DecodeStage(
         RS_2 <= rs_2;
         J_TYPE <= j_immed;
         B_TYPE <= b_immed;
+        I_TYPE <= i_immed;
         ALU_IN_1 <= alu_in_1;
         ALU_IN_2 <= alu_in_2;
         RF_WR_SEL <= rf_wr_sel;
+        IR <= MEM_RAW_DOUT1;
     end
     
-    assign opcode = {IR[6:0]};
+    assign opcode = {MEM_RAW_DOUT1[6:0]};
  
     // Reg File
-    OTTER_registerFile RF(IR[19:15], IR[24:20], IR[11:7], WD, reg_write, RS_1, RS_2, DE_CLK);
+    OTTER_registerFile RF(MEM_RAW_DOUT1[19:15], MEM_RAW_DOUT1[24:20], MEM_RAW_DOUT1[11:7], WD, reg_write, RS_1, RS_2, DE_CLK);
     
     // Decoder
-    OTTER_CU_Decoder DCDR(IR[6:0], IR[14:12], IR[31:25], int_taken, alu_src_a, alu_src_b, alu_fun, 
+    OTTER_CU_Decoder DCDR(MEM_RAW_DOUT1[6:0], MEM_RAW_DOUT1[14:12], MEM_RAW_DOUT1[31:25], int_taken, alu_src_a, alu_src_b, alu_fun, 
     rf_wr_sel, reg_write, mem_write, mem_read_2);        
     
     // Immediate Generation
-    assign i_immed = { {21{IR[31]}}, IR[30:20] };
-    assign s_immed = { {21{IR[31]}}, IR[30:25], IR[11:7] };
-    assign b_immed = { {20{IR[31]}}, IR[7], IR[30:25], IR[11:8], 1'b0 };
-    assign u_immed = { IR[31:12], 12'b0 };
-    assign j_immed = { {12{IR[31]}}, IR[19:12], IR[20], IR[30:25], IR[24:21], 1'b0 };
+    assign i_immed = { {21{MEM_RAW_DOUT1[31]}}, MEM_RAW_DOUT1[30:20] };
+    assign s_immed = { {21{MEM_RAW_DOUT1[31]}}, MEM_RAW_DOUT1[30:25], MEM_RAW_DOUT1[11:7] };
+    assign b_immed = { {20{MEM_RAW_DOUT1[31]}}, MEM_RAW_DOUT1[7], MEM_RAW_DOUT1[30:25], MEM_RAW_DOUT1[11:8], 1'b0 };
+    assign u_immed = { MEM_RAW_DOUT1[31:12], 12'b0 };
+    assign j_immed = { {12{MEM_RAW_DOUT1[31]}}, MEM_RAW_DOUT1[19:12], MEM_RAW_DOUT1[20], MEM_RAW_DOUT1[30:25], MEM_RAW_DOUT1[24:21], 1'b0 };
     
     // ALU Muxes
     always_comb begin 

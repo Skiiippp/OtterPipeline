@@ -28,19 +28,22 @@ module FetchStage(
     input logic [1:0] PC_SOURCE,
     input logic PC_RESET,
     input logic PC_WRITE,
-    output logic [31:0] PC_COUNT_UNCLOCKED,    // not buffered - handled outside this module, with mem stuff, so combinational
+    output logic [31:0] MEM_ADDR,    // not buffered - handled outside this module, with mem stuff, so combinational
     output logic [31:0] PC_COUNT,
-    output logic [31:0] PC_PLUS_FOUR
+    output logic [31:0] PC_PLUS_FOUR,
+    input logic RAW_MEM_BUSY_1,
+    output logic MEM_BUSY_1
 );
 
     logic [31:0] pc_in, pc_plus_four, pc_count;
     
     assign pc_plus_four = pc_count + 4;
-    assign PC_COUNT_UNCLOCKED = pc_count;
+    assign MEM_ADDR = pc_count;
 
     always_ff @ (posedge IF_CLK) begin
         PC_PLUS_FOUR <= pc_plus_four;
         PC_COUNT <= pc_count;
+        MEM_BUSY_1 <= RAW_MEM_BUSY_1;
     end 
     
     // PC Mux
