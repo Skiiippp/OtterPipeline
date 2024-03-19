@@ -36,11 +36,6 @@ module DecodeStage(
     output logic [31:0] ALU_IN_1,
     output logic [31:0] ALU_IN_2,
     output logic [1:0] RF_WR_SEL
-    
-    /* // Error stuff 
-    input logic ERR_PC_IN,
-    output logic ERR_PC_OUT
-    */
     );
     
     logic reg_write, mem_write, mem_read_2, int_taken = 1'b0, alu_src_a; 

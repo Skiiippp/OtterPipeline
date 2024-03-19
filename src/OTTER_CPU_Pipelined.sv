@@ -1,24 +1,6 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 03/13/2024 10:39:49 PM
-// Design Name: 
-// Module Name: OTTER_CPU_Pipelined
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+//CPE333 Lab3 Pipelined Otter. James Gruber, Braydon Burkhardt - rev A
 
+`timescale 1ns / 1ps
 
 module OTTER_CPU_Pipelined(
     input logic CLK,
@@ -35,16 +17,45 @@ module OTTER_CPU_Pipelined(
     logic [31:0] jalr, branch, jal;  
     logic [1:0] pc_source; 
     logic pc_write = 1'b1;
-    // Outpus
+    // Outputs
     logic [31:0] pc_count_unclocked, pc_count, pc_plus_four;
+    
     
     FetchStage IF(CLK, jalr, branch, jal, pc_source, RESET, pc_write, pc_count_unclocked, pc_count, pc_plus_four);
     
-    // Route memory shit
+    // ### Memory ###
+    //shared between IF and MEM stages
+    //inputs
+    logic memRead1;
+    logic memRead2;
+    logic memWrite;
+    logic memSize; //feedback of IR[14:12]
+    logic din2;
+    logic IOBUS_IN;
+    //outputs
+    logic [31:0] ir; // piped via mem
+    logic dout2;
+    logic IOBUS_WR;
+    
+    MEM OTTER_mem_byte(
+    .MEM_CLK(CLK),
+    .MEM_ADDR1(pc_count_unclocked),
+    .MEM_ADDR2(),
+    .MEM_DIN2(),
+    .MEM_WRITE2(),
+    .MEM_READ1(),
+    .MEM_READ2(),
+    .ERR(),
+    .MEM_DOUT1(ir),
+    .MEM_DOUT2(),
+    .IO_IN(),
+    .IO_WR(),
+    .MEM_SIZE(),
+    .MEM_SIGN()
+    );
     
     // ### Decode Stage ###
     // Inputs
-    logic [31:0] ir;    // piped from mem
     logic [31:0] wd;    // piped from wb
     // Outputs
     logic reg_write, mem_write, mem_read_2;

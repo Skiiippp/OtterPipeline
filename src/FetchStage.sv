@@ -31,20 +31,16 @@ module FetchStage(
     output logic [31:0] PC_COUNT_UNCLOCKED,    // not buffered - handled outside this module, with mem stuff, so combinational
     output logic [31:0] PC_COUNT,
     output logic [31:0] PC_PLUS_FOUR
-    
-    /* // Error stuff
-    input logic ERR_PC_IN,
-    output logic ERR_PC_OUT
-    */
 );
 
     logic [31:0] pc_in, pc_plus_four, pc_count;
     
     assign pc_plus_four = pc_count + 4;
-    assign PC_COUNT = pc_count;
+    assign PC_COUNT_UNCLOCKED = pc_count;
 
     always_ff @ (posedge IF_CLK) begin
         PC_PLUS_FOUR <= pc_plus_four;
+        PC_COUNT <= pc_count;
     end 
     
     // PC Mux
@@ -60,8 +56,6 @@ module FetchStage(
     
     // PC
     ProgCount PC(IF_CLK, PC_RESET, PC_WRITE, pc_in, pc_count);
-    
-
 
 
 endmodule
