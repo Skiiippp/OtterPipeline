@@ -16,12 +16,12 @@ module OTTER_CPU_Pipelined(
     // ### Memory ###
     //shared between IF, DE, MEM, and WB stages
     //inputs
-    logic memRead1;
+    logic memRead1 = 1'b1;
     logic memRead2;
     logic memWrite;
-    logic [31:0] din2; 
-    logic [31:0] addr1;
-    logic [31:0] addr2;
+    logic [31:0] mem_din2; 
+    logic [31:0] mem_addr1;
+    logic [31:0] mem_addr2;
     //outputs
     logic [31:0] memRaw_dout1; //'raw' wires are before the regs in the appropriate stage
     logic [31:0] memRaw_dout2;
@@ -33,9 +33,9 @@ module OTTER_CPU_Pipelined(
     
     OTTER_mem_byte MEMORY(
     .MEM_CLK(CLK),
-    .MEM_ADDR1(addr1),
-    .MEM_ADDR2(addr2),
-    .MEM_DIN2(din2),
+    .MEM_ADDR1(mem_addr1),
+    .MEM_ADDR2(mem_addr2),
+    .MEM_DIN2(mem_din2),
     .MEM_WRITE2(memWrite),
     .MEM_READ1(memRead1),
     .MEM_READ2(memRead2),
@@ -48,6 +48,7 @@ module OTTER_CPU_Pipelined(
     .MEM_SIGN(1'b0)
     );
 
+
     // ### IF: Fetch Stage ###
     // Inputs
     logic [31:0] jalr, branch, jal;  
@@ -56,7 +57,8 @@ module OTTER_CPU_Pipelined(
     // Outputs
     logic [31:0] pc_count, pc_plus_four;
     
-    FetchStage IF(CLK, jalr, branch, jal, pc_source, RESET, pc_write, addr1, pc_count, pc_plus_four, memRaw_memBusy1,   memBusy1);
+    FetchStage IF(CLK, jalr, branch, jal, pc_source, RESET, pc_write, mem_addr1, pc_count, pc_plus_four, memRaw_memBusy1,   memBusy1);
+    
     
     // ### DE: Decode Stage ###
     // Inputs
@@ -69,27 +71,22 @@ module OTTER_CPU_Pipelined(
     
     DecodeStage DE(CLK, pc_count, memRaw_dout1, wd, reg_write, mem_write, mem_read_2, alu_fun, rs_1, rs_2, j_type, b_type, i_type, alu_in_1, alu_in_2, rf_wr_sel, ir);
     
-    // ### EX: Execute Stage ###
-    // Inputs
-    // Outputs  
-    logic [31:0] alu_result;
     
-    ExecuteStage EX(CLK, j_type, b_type, i_type, ir, pc_count, rs_1, rs_2, alu_in_1, alu_in_2, alu_fun, jalr, branch, jal, pc_source, alu_result);
+    // ### EX: Execute Stage ###
+    
+    ExecuteStage EX(CLK, j_type, b_type, i_type, ir, pc_count, rs_1, rs_2, alu_in_1, alu_in_2, alu_fun, jalr, branch, jal, pc_source, mem_addr2);
+    
     
     // ### MEM: Memory Stage ###
-    // Inputs
-    logic mem_read_1 = 1'b1;
-    // Outputs
-    logic [31:0] d_out_2;
     
-    MemoryStage MEM(CLK, alu_result, rs_2, mem_write, mem_read_2, d_out_2, IOBUS_IN, IOBUS_OUT, IOBUS_WR, IOBUS_ADDR, pc_count, mem_read_1, ir);
+    MemoryStage MEM(CLK, mem_addr2, rs_2, memRaw_memBusy2, memRaw_iobus_wr, memBusy2, IOBUS_WR, IOBUS_OUT, IOBUS_ADDR);
+    
     
     // ### WB: Writeback Stage ###
     // Inputs
-    logic [31:0] csr_reg;
-    // Outputs
+    logic [31:0] csr_reg = 0;
     
-    WritebackStage WB(CLK, reg_write, pc_plus_four, csr_reg, d_out_2, alu_result, rf_wr_sel, wd);
+    WritebackStage WB(CLK, pc_plus_four, csr_reg, memRaw_dout2, IOBUS_ADDR, rf_wr_sel, wd); //using IOBUS as alu_return reg output 
     
 
 endmodule
