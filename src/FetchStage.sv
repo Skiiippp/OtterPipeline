@@ -20,9 +20,11 @@ module FetchStage(
     assign pc_plus_four = pc_count + 4;
     assign MEM_ADDR = pc_count;
 
+    assign PC_COUNT = pc_count; //by any god I hope this fixes that fucking timing issue
+
     always_ff @ (posedge IF_CLK) begin
         PC_PLUS_FOUR <= pc_plus_four;
-        PC_COUNT <= pc_count;
+        //PC_COUNT <= pc_count;
         MEM_BUSY_1 <= RAW_MEM_BUSY_1;
     end 
     

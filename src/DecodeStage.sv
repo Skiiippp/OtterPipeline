@@ -28,7 +28,6 @@ module DecodeStage(
     logic [31:0] alu_in_1, alu_in_2;
     
     always_ff @ (posedge DE_CLK) begin 
-        REG_WRITE <= reg_write;
         MEM_WRITE <= mem_write;
         MEM_READ_2 <= mem_read_2;
         ALU_FUN <= alu_fun;
@@ -43,10 +42,14 @@ module DecodeStage(
         IR <= MEM_RAW_DOUT1;
     end
     
+    always_ff @ (negedge DE_CLK) begin
+        REG_WRITE <= reg_write;
+    end
+    
     assign opcode = {MEM_RAW_DOUT1[6:0]};
  
     // Reg File
-    OTTER_registerFile RF(MEM_RAW_DOUT1[19:15], MEM_RAW_DOUT1[24:20], MEM_RAW_DOUT1[11:7], WD, reg_write, RS_1, RS_2, DE_CLK);
+    OTTER_registerFile RF(MEM_RAW_DOUT1[19:15], MEM_RAW_DOUT1[24:20], MEM_RAW_DOUT1[11:7], WD, reg_write, rs_1, rs_2, DE_CLK);
     
     // Decoder
     OTTER_CU_Decoder DCDR(MEM_RAW_DOUT1[6:0], MEM_RAW_DOUT1[14:12], MEM_RAW_DOUT1[31:25], int_taken, alu_src_a, alu_src_b, alu_fun, 
@@ -62,8 +65,10 @@ module DecodeStage(
     // ALU Muxes
     always_comb begin 
         // Mux A
-        if(!alu_src_a)  alu_in_1 = rs_1;
-        else            alu_in_1 = u_immed;
+        case(alu_src_a)
+            1'b0: alu_in_1 = rs_1;
+            2'b1: alu_in_1 = u_immed;
+        endcase
         
         // Mux B
         case(alu_src_b) 
